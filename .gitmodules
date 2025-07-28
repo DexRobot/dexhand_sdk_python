@@ -1,0 +1,3 @@
+[submodule "cpp/sdk"]
+	path = cpp/sdk
+	url = git@github.com:DexRobot/dexhand_sdk_cpp.git
