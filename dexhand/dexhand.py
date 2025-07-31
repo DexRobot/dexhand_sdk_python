@@ -1,8 +1,10 @@
 from ctypes import *
 from enum import IntEnum
+from pathlib import Path
 
-
-LibDexHand = cdll.LoadLibrary("../cpp/sdk/lib/linux/libdexhand.so")
+package_dir = Path(__file__).parent.absolute()
+cpplib_path = package_dir / '../cpp/sdk/lib/linux' / 'libdexhand.so'
+LibDexHand = cdll.LoadLibrary(str(cpplib_path))
 
 
 class ControlMode(IntEnum):
