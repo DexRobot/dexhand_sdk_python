@@ -15,6 +15,7 @@ setup(
     package_data={
         'dexhand_sdk_python': ['cpp/sdk/lib/linux/libdexhand.so',
                                'cpp/sdk/lib/linux/libusbcanfd.so',
+                               'cpp/sdk/lib/linux/libusbcanfd.so.1.0.8',
                                'cpp/sdk/lib/linux/libusb-1.0.so',
                                'cpp/sdk/lib/linux/libControlCAN.so'],
     },
