@@ -1,9 +1,13 @@
 from ctypes import *
 from enum import IntEnum
 from pathlib import Path
+import platform
+
+myplatform = platform.platform()
+platform_dir = 'x86_64' if myplatform.__contains__('x86') else 'aarch64'
 
 package_dir = Path(__file__).parent.absolute()
-cpplib_path = package_dir / '../cpp/sdk/lib/linux' / 'libdexhand.so'
+cpplib_path = package_dir / '../cpp/sdk/lib/linux/{}/libdexhand.so'.format(platform_dir)
 LibDexHand = cdll.LoadLibrary(str(cpplib_path))
 
 

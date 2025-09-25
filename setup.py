@@ -1,4 +1,8 @@
 from setuptools import setup, find_packages
+import platform
+
+pf = platform.platform()
+arch_dir = 'x86_64' if pf.__contains__('x86') else 'aarch64'
 
 setup(
     name="dexhand_sdk_python",
@@ -13,11 +17,11 @@ setup(
     ],
 
     package_data={
-        'dexhand_sdk_python': ['cpp/sdk/lib/linux/libdexhand.so',
-                               'cpp/sdk/lib/linux/libusbcanfd.so',
-                               'cpp/sdk/lib/linux/libusbcanfd.so.1.0.8',
-                               'cpp/sdk/lib/linux/libusb-1.0.so',
-                               'cpp/sdk/lib/linux/libControlCAN.so'],
+        'dexhand_sdk_python': ['cpp/sdk/lib/linux/{}/libdexhand.so'.format(arch_dir),
+                               'cpp/sdk/lib/linux/{}/libusbcanfd.so'.format(arch_dir),
+                               'cpp/sdk/lib/linux/{}/libusbcanfd.so.1.0.8'.format(arch_dir),
+                               'cpp/sdk/lib/linux/{}/libusb-1.0.so'.format(arch_dir),
+                               'cpp/sdk/lib/linux/{}/libControlCAN.so'.format(arch_dir)],
     },
     include_package_data=True,
 
