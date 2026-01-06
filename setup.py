@@ -1,8 +1,26 @@
 from setuptools import setup, find_packages
 import platform
+from pathlib import Path
+import os
 
 pf = platform.platform()
-arch_dir = 'x86_64' if pf.__contains__('x86') else 'aarch64'
+
+if pf.__contains__('Windows'):
+    package_files = [
+        'cpp/sdk/lib/windows/dexhand.dll',
+        'cpp/sdk/lib/windows/zlgcan.dll',
+        'cpp/sdk/lib/windows/kerneldlls/*',
+        'cpp/sdk/lib/windows/kerneldlls/**/*',
+    ]
+else:
+    arch_dir = 'x86_64' if pf.__contains__('x86') else 'aarch64'
+    package_files = [
+        'cpp/sdk/lib/linux/{}/libdexhand.so'.format(arch_dir),
+        'cpp/sdk/lib/linux/{}/libusbcanfd.so'.format(arch_dir),
+        'cpp/sdk/lib/linux/{}/libusbcanfd.so.1.0.8'.format(arch_dir),
+        'cpp/sdk/lib/linux/{}/libusb-1.0.so'.format(arch_dir),
+        'cpp/sdk/lib/linux/{}/libControlCAN.so'.format(arch_dir)
+    ]
 
 setup(
     name="dexhand_sdk_python",
@@ -17,11 +35,7 @@ setup(
     ],
 
     package_data={
-        'dexhand_sdk_python': ['cpp/sdk/lib/linux/{}/libdexhand.so'.format(arch_dir),
-                               'cpp/sdk/lib/linux/{}/libusbcanfd.so'.format(arch_dir),
-                               'cpp/sdk/lib/linux/{}/libusbcanfd.so.1.0.8'.format(arch_dir),
-                               'cpp/sdk/lib/linux/{}/libusb-1.0.so'.format(arch_dir),
-                               'cpp/sdk/lib/linux/{}/libControlCAN.so'.format(arch_dir)],
+        'dexhand_sdk_python': package_files,
     },
     include_package_data=True,
 
