@@ -4,10 +4,17 @@ from pathlib import Path
 import platform
 
 myplatform = platform.platform()
-platform_dir = 'x86_64' if myplatform.__contains__('x86') else 'aarch64'
+mysystem = platform.system()
 
 package_dir = Path(__file__).parent.absolute()
-cpplib_path = package_dir / '../cpp/sdk/lib/linux/{}/libdexhand.so'.format(platform_dir)
+
+if mysystem == 'Windows':
+    dll_dir = (package_dir / '../cpp/sdk/lib/windows').resolve()
+    cpplib_path = dll_dir / 'dexhand.dll'
+else:
+    platform_dir = 'x86_64' if myplatform.__contains__('x86') else 'aarch64'
+    cpplib_path = package_dir / '../cpp/sdk/lib/linux/{}/libdexhand.so'.format(platform_dir)
+
 LibDexHand = cdll.LoadLibrary(str(cpplib_path))
 
 
@@ -21,7 +28,10 @@ class ControlMode(IntEnum):
 
 class AdapterType(IntEnum):
     """Supported USB-CANFD adapters"""
-    ZLG_200U = 33
+    if mysystem == 'Windows':
+        ZLG_200U = 41
+    else:
+        ZLG_200U = 33
     ZLG_MINI = 42
     LYS_MINI = 43
 
