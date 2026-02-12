@@ -6,7 +6,7 @@ from dexhand.dexhand import AdapterType
 
 
 def main():
-    hand021s = DexHand021S(adapter_type=AdapterType.ZLG_200U, adapter_index=0)
+    hand021s = DexHand021S(adapter_type=AdapterType.ZLG_MINI, adapter_index=0)
     hand021s.listen(enable=True)
     device_id = hand021s.get_device_id(channel=0)
     # device_id = 0x01
@@ -20,10 +20,7 @@ def main():
     maxCurrent1 = hand021s.get_safe_current(device_id=device_id, finger_id=0x01)
     print('Maximum allowed Current of finger 1 is {}'.format(maxCurrent1))
 
-    hand021s.clear_error(device_id, 0x01)
-    hand021s.clear_error(device_id, 0x02)
-    hand021s.clear_error(device_id, 0x03)
-    hand021s.clear_error(device_id, 0x04)
+    hand021s.clear_error(device_id)
 
     hand021s.reset_joints(device_id)
     time.sleep(1)
@@ -39,9 +36,7 @@ def main():
 
         print('joint1={}, joint2={}, joint3={}'.format(joint1, joint2, joint3))
 
-        hand021s.clear_error(device_id, 0x01)
-        hand021s.clear_error(device_id, 0x02)
-        hand021s.clear_error(device_id, 0x03)
+        hand021s.clear_error(device_id)
 
         time.sleep(0.8)
 
@@ -49,9 +44,7 @@ def main():
         hand021s.move_finger(device_id, 0x02, 0, 500, 0x55, 10)
         hand021s.move_finger(device_id, 0x03, 0, 500, 0x55, 10)
 
-        hand021s.clear_error(device_id, 0x01)
-        hand021s.clear_error(device_id, 0x02)
-        hand021s.clear_error(device_id, 0x03)
+        hand021s.clear_error(device_id)
         
         time.sleep(0.8)
 
