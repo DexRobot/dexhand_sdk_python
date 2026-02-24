@@ -49,7 +49,7 @@ class DexHand021S:
         LibDexHand.get_device_id_021s.restype = c_ubyte
 
         LibDexHand.get_firmware_version_021s.argtypes = [c_void_p, c_ubyte]
-        LibDexHand.get_firmware_version_021s.restype = c_ubyte
+        LibDexHand.get_firmware_version_021s.restype = c_uint16
 
         LibDexHand.enable_realtime_response_021s.argtypes = [c_void_p, c_ubyte, c_bool]
 
@@ -66,7 +66,10 @@ class DexHand021S:
         LibDexHand.move_finger_021s.argtypes = [c_void_p, c_ubyte, c_short, c_short, c_ubyte, c_uint, c_ubyte]
 
         LibDexHand.reset_joints_021s.argtypes = [c_void_p, c_ubyte]
-        LibDexHand.clear_error_021s.argtypes = [c_void_p, c_ubyte, c_ubyte]
+        LibDexHand.clear_error_021s.argtypes = [c_void_p, c_ubyte]
+
+        LibDexHand.get_error_code_021s.argtypes = [c_void_p, c_ubyte, c_ubyte]
+        LibDexHand.get_error_code_021s.restype = c_ubyte
 
         LibDexHand.get_motor_current_021s.argtypes = [c_void_p, c_ubyte, c_ubyte]
         LibDexHand.get_motor_current_021s.restype = c_short
@@ -138,10 +141,10 @@ class DexHand021S:
         LibDexHand.reset_joints_021s(self.instance, device_id)
 
     def get_error_code(self, device_id, finger_id):
-        LibDexHand.get_error_code_021s(self.instance, finger_id, device_id)
+        return LibDexHand.get_error_code_021s(self.instance, finger_id, device_id)
 
-    def clear_error(self, device_id, finger_id):
-        LibDexHand.clear_error_021s(self.instance, finger_id, device_id)
+    def clear_error(self, device_id):
+        LibDexHand.clear_error_021s(self.instance, device_id)
 
     def get_motor_current(self, device_id, finger_id):
         return LibDexHand.get_motor_current_021s(self.instance, finger_id, device_id)
