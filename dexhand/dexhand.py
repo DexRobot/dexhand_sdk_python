@@ -86,8 +86,17 @@ class DexHand021S:
         LibDexHand.get_normal_pressure_021s.argtypes = [c_void_p, c_ubyte, c_ubyte]
         LibDexHand.get_normal_pressure_021s.restype = c_float
 
+        LibDexHand.get_normal_pressure_delta_021s.argtypes = [c_void_p, c_ubyte, c_ubyte]
+        LibDexHand.get_normal_pressure_delta_021s.restype = c_int
+
         LibDexHand.get_tangent_pressure_021s.argtypes = [c_void_p, c_ubyte, c_ubyte]
         LibDexHand.get_tangent_pressure_021s.restype = c_float
+
+        LibDexHand.get_tangent_pressure_delta_021s.argtypes = [c_void_p, c_ubyte, c_ubyte]
+        LibDexHand.get_tangent_pressure_delta_021s.restype = c_int
+
+        LibDexHand.get_tangent_pressure_angle_021s.argtypes = [c_void_p, c_ubyte, c_ubyte]
+        LibDexHand.get_tangent_pressure_angle_021s.restype = c_short
 
         LibDexHand.get_approaching_value_021s.argtypes = [c_void_p, c_ubyte, c_ubyte]
         LibDexHand.get_approaching_value_021s.restype = c_int
@@ -161,8 +170,17 @@ class DexHand021S:
     def get_normal_pressure(self, device_id, finger_id):
         return LibDexHand.get_normal_pressure_021s(self.instance, finger_id, device_id)
 
+    def get_normal_pressure_delta(self, device_id, finger_id):
+        return LibDexHand.get_normal_pressure_delta_021s(self.instance, finger_id, device_id)
+
     def get_tangent_pressure(self, device_id, finger_id):
         return LibDexHand.get_tangent_pressure_021s(self.instance, finger_id, device_id)
+
+    def get_tangent_pressure_delta(self, device_id, finger_id):
+        return LibDexHand.get_tangent_pressure_delta_021s(self.instance, finger_id, device_id)
+
+    def get_tangent_pressure_angle(self, device_id, finger_id):
+        return LibDexHand.get_tangent_pressure_angle_021s(self.instance, finger_id, device_id)
 
     def get_approaching_value(self, device_id, finger_id):
         return LibDexHand.get_approaching_value_021s(self.instance, finger_id, device_id)
