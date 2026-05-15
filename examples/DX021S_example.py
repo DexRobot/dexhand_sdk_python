@@ -25,7 +25,7 @@ def main():
     hand021s.reset_joints(device_id)
     time.sleep(1)
 
-    for i in range(5):
+    for i in range(10):
         hand021s.move_finger(device_id, 0x01, 1000, 600, 0x55, 10)
         hand021s.move_finger(device_id, 0x02, 1000, 600, 0x55, 10)
         hand021s.move_finger(device_id, 0x03, 1000, 600, 0x55, 10)
@@ -35,6 +35,12 @@ def main():
         joint3 = hand021s.get_joint_degree(device_id, 0x03)
 
         print('joint1={}, joint2={}, joint3={}'.format(joint1, joint2, joint3))
+
+        nmforce1 = hand021s.get_normal_pressure(device_id, 0x01)
+        nmforce2 = hand021s.get_normal_pressure(device_id, 0x02)
+        nmforce3 = hand021s.get_normal_pressure(device_id, 0x03)
+
+        print('nmforce1={}, nmforce3={}, nmforce3={}'.format(nmforce1, nmforce2, nmforce3))
 
         hand021s.clear_error(device_id)
 
