@@ -27,13 +27,14 @@ class ControlMode(IntEnum):
 
 
 class AdapterType(IntEnum):
-    """Supported USB-CANFD adapters"""
+    """Supported adapters"""
     if mysystem == 'Windows':
         ZLG_200U = 41
     else:
         ZLG_200U = 33
     ZLG_MINI = 42
     LYS_MINI = 43
+    USB2_485 = 485
 
 
 class DexHand021S:
@@ -184,3 +185,237 @@ class DexHand021S:
 
     def get_approaching_value(self, device_id, finger_id):
         return LibDexHand.get_approaching_value_021s(self.instance, finger_id, device_id)
+
+class ControlLoopArgs(Structure):
+    """Whole-frame target of one motor of DexHand-021Lite"""
+    _fields_ = [
+        ('position', c_int16),
+        ('speed', c_uint16),
+        ('current', c_uint16),
+        ('p1', c_uint16),
+        ('p2', c_uint16),
+    ]
+
+
+class MotorState(Structure):
+    """Status feedback of one motor of DexHand-021Lite"""
+    _fields_ = [
+        ('id_current', c_int16),
+        ('iq_current', c_int16),
+        ('rpm', c_int16),
+        ('hall', c_int16),
+        ('error_status', c_uint16),
+    ]
+
+
+class DexHand021Lite:
+    def __init__(self, serial_port, baud_rate=921600):
+        LibDexHand.create_021lite.argtypes = [c_char_p, c_uint32]
+        LibDexHand.create_021lite.restype = c_void_p
+        LibDexHand.destroy_021lite.argtypes = [c_void_p]
+
+        LibDexHand.disconnect_021lite.argtypes = [c_void_p]
+
+        LibDexHand.set_device_id_021lite.argtypes = [c_void_p, c_ubyte, c_uint16]
+        LibDexHand.set_device_id_021lite.restype = c_bool
+
+        LibDexHand.get_device_id_021lite.argtypes = [c_void_p, POINTER(c_ubyte), c_int]
+        LibDexHand.get_device_id_021lite.restype = c_ubyte
+
+        LibDexHand.enable_realtime_response_021lite.argtypes = [c_void_p, c_ubyte, c_uint16, c_bool]
+        LibDexHand.enable_realtime_response_021lite.restype = c_bool
+
+        LibDexHand.is_alive_021lite.argtypes = [c_void_p, c_ubyte]
+        LibDexHand.is_alive_021lite.restype = c_bool
+
+        LibDexHand.get_hand_type_021lite.argtypes = [c_void_p, c_ubyte]
+        LibDexHand.get_hand_type_021lite.restype = c_ubyte
+
+        LibDexHand.get_firmware_version_021lite.argtypes = [c_void_p, c_ubyte, c_ubyte]
+        LibDexHand.get_firmware_version_021lite.restype = c_uint32
+
+        LibDexHand.get_serial_number_021lite.argtypes = [c_void_p, c_ubyte, c_char_p, c_int]
+        LibDexHand.get_serial_number_021lite.restype = c_int
+
+        LibDexHand.get_temperature_021lite.argtypes = [c_void_p, c_ubyte, POINTER(c_uint16)]
+        LibDexHand.get_temperature_021lite.restype = c_bool
+
+        LibDexHand.enable_021lite.argtypes = [c_void_p, c_ubyte, c_bool]
+        LibDexHand.enable_021lite.restype = c_bool
+
+        LibDexHand.move_finger_021lite.argtypes = [c_void_p, c_ubyte, c_ubyte, c_ubyte, c_int16,
+                                                   c_uint16, c_uint16, c_uint16, c_uint16, c_int32]
+
+        LibDexHand.move_multiple_fingers_021lite.argtypes = [c_void_p, c_ubyte, c_ubyte,
+                                                             POINTER(ControlLoopArgs)]
+
+        LibDexHand.reset_joints_021lite.argtypes = [c_void_p, c_ubyte]
+
+        LibDexHand.home_fingers_021lite.argtypes = [c_void_p, c_ubyte]
+        LibDexHand.home_thumb_021lite.argtypes = [c_void_p, c_ubyte]
+
+        LibDexHand.set_safe_temperature_021lite.argtypes = [c_void_p, c_ubyte, c_ubyte, c_uint16]
+        LibDexHand.set_safe_temperature_021lite.restype = c_bool
+
+        LibDexHand.get_safe_temperature_021lite.argtypes = [c_void_p, c_ubyte, c_ubyte]
+        LibDexHand.get_safe_temperature_021lite.restype = c_uint16
+
+        LibDexHand.clear_error_021lite.argtypes = [c_void_p, c_ubyte]
+        LibDexHand.clear_error_021lite.restype = c_bool
+
+        LibDexHand.restore_021lite.argtypes = [c_void_p, c_ubyte]
+        LibDexHand.restore_021lite.restype = c_bool
+
+        LibDexHand.set_baud_rate_021lite.argtypes = [c_void_p, c_ubyte, c_ubyte, c_int]
+        LibDexHand.set_baud_rate_021lite.restype = c_bool
+
+        LibDexHand.write_user_table_021lite.argtypes = [c_void_p, c_ubyte, POINTER(c_uint16), c_int]
+        LibDexHand.write_user_table_021lite.restype = c_bool
+        LibDexHand.read_user_table_021lite.argtypes = [c_void_p, c_ubyte, POINTER(c_uint16), c_int]
+        LibDexHand.read_user_table_021lite.restype = c_bool
+        LibDexHand.read_user_table_values_021lite.argtypes = [c_void_p, c_ubyte, POINTER(c_uint16), c_int]
+        LibDexHand.read_user_table_values_021lite.restype = c_bool
+        LibDexHand.write_user_table_values_021lite.argtypes = [c_void_p, c_ubyte, POINTER(c_uint16), c_int]
+        LibDexHand.write_user_table_values_021lite.restype = c_bool
+
+        LibDexHand.get_hand_status_021lite.argtypes = [c_void_p, c_ubyte, POINTER(MotorState)]
+        LibDexHand.get_hand_status_021lite.restype = c_bool
+
+        LibDexHand.get_thumb_degree_021lite.argtypes = [c_void_p, c_ubyte, POINTER(c_int16)]
+        LibDexHand.get_thumb_degree_021lite.restype = c_bool
+
+        LibDexHand.get_sys_status_021lite.argtypes = [c_void_p, c_ubyte]
+        LibDexHand.get_sys_status_021lite.restype = c_uint16
+
+        LibDexHand.get_motor_status_021lite.argtypes = [c_void_p, c_ubyte]
+        LibDexHand.get_motor_status_021lite.restype = c_uint16
+
+        LibDexHand.get_enable_status_021lite.argtypes = [c_void_p, c_ubyte]
+        LibDexHand.get_enable_status_021lite.restype = c_uint16
+
+        LibDexHand.reboot_021lite.argtypes = [c_void_p, c_ubyte, c_uint16]
+
+        self.instance = LibDexHand.create_021lite(serial_port.encode(), baud_rate)
+        if not self.instance:
+            raise RuntimeError('Failed to open serial port {}'.format(serial_port))
+
+    def __del__(self):
+        instance = getattr(self, 'instance', None)
+        if instance:
+            LibDexHand.destroy_021lite(instance)
+            self.instance = None
+
+    def disconnect(self):
+        LibDexHand.disconnect_021lite(self.instance)
+
+    def set_device_id(self, device_id, new_device_id):
+        return LibDexHand.set_device_id_021lite(self.instance, device_id, new_device_id)
+
+    def get_device_id(self):
+        device_list = (c_ubyte * 1)()
+        count = LibDexHand.get_device_id_021lite(self.instance, device_list, 1)
+        return device_list[0] if count else None
+
+    def enable_realtime_response(self, device_id, sample_rate, enable=True):
+        return LibDexHand.enable_realtime_response_021lite(self.instance, device_id, sample_rate, enable)
+
+    def is_alive(self, device_id):
+        return LibDexHand.is_alive_021lite(self.instance, device_id)
+
+    def get_hand_type(self, device_id):
+        return LibDexHand.get_hand_type_021lite(self.instance, device_id)
+
+    def get_firmware_version(self, device_id, finger_id):
+        return LibDexHand.get_firmware_version_021lite(self.instance, device_id, finger_id)
+
+    def get_serial_number(self, device_id):
+        # e.g. DX030-S-L-M-2024BCBBAAAB, 24 chars + '\0'
+        buff = create_string_buffer(32)
+        LibDexHand.get_serial_number_021lite(self.instance, device_id, buff, len(buff))
+        return buff.value.decode(errors='ignore')
+
+    def get_temperature(self, device_id):
+        temperature = (c_uint16 * 2)()
+        if not LibDexHand.get_temperature_021lite(self.instance, device_id, temperature):
+            return None
+        return tuple(temperature)
+
+    def enable(self, device_id, enable_all=True):
+        return LibDexHand.enable_021lite(self.instance, device_id, enable_all)
+
+    def move_finger(self, device_id, finger_id, mode, position, speed=0, current=0, p1=0, p2=0, delay=10):
+        LibDexHand.move_finger_021lite(self.instance, device_id, finger_id, mode,
+                                       position, speed, current, p1, p2, delay)
+
+    def move_multiple_fingers(self, device_id, mode, joints):
+        targets = [j if isinstance(j, ControlLoopArgs) else ControlLoopArgs(*j) for j in joints]
+        LibDexHand.move_multiple_fingers_021lite(self.instance, device_id, mode,
+                                                 (ControlLoopArgs * len(targets))(*targets))
+
+    def reset_joints(self, device_id):
+        LibDexHand.reset_joints_021lite(self.instance, device_id)
+
+    def home_fingers(self, device_id):
+        LibDexHand.home_fingers_021lite(self.instance, device_id)
+
+    def home_thumb(self, device_id):
+        LibDexHand.home_thumb_021lite(self.instance, device_id)
+
+    def set_safe_temperature(self, device_id, finger_id, value):
+        return LibDexHand.set_safe_temperature_021lite(self.instance, device_id, finger_id, value)
+
+    def get_safe_temperature(self, device_id, finger_id):
+        return LibDexHand.get_safe_temperature_021lite(self.instance, device_id, finger_id)
+
+    def clear_error(self, device_id):
+        return LibDexHand.clear_error_021lite(self.instance, device_id)
+
+    def restore(self, device_id):
+        return LibDexHand.restore_021lite(self.instance, device_id)
+
+    def set_baud_rate(self, device_id, baud_index, adapter_type=AdapterType.USB2_485):
+        return LibDexHand.set_baud_rate_021lite(self.instance, device_id, baud_index, adapter_type)
+
+    def write_user_table(self, device_id, reg_addrs):
+        reg_addrs = (c_uint16 * len(reg_addrs))(*reg_addrs)
+        return LibDexHand.write_user_table_021lite(self.instance, device_id, reg_addrs, len(reg_addrs))
+
+    def read_user_table(self, device_id, count):
+        reg_addrs = (c_uint16 * count)()
+        if not LibDexHand.read_user_table_021lite(self.instance, device_id, reg_addrs, count):
+            return None
+        return list(reg_addrs)
+
+    def read_user_table_values(self, device_id, count):
+        values = (c_uint16 * count)()
+        if not LibDexHand.read_user_table_values_021lite(self.instance, device_id, values, count):
+            return None
+        return list(values)
+
+    def write_user_table_values(self, device_id, values):
+        values = (c_uint16 * len(values))(*values)
+        return LibDexHand.write_user_table_values_021lite(self.instance, device_id, values, len(values))
+
+    def get_hand_status(self, device_id):
+        status = (MotorState * 6)()
+        if not LibDexHand.get_hand_status_021lite(self.instance, device_id, status):
+            return None
+        return list(status)
+
+    def get_thumb_degree(self, device_id):
+        degree = (c_int16 * 2)()
+        if not LibDexHand.get_thumb_degree_021lite(self.instance, device_id, degree):
+            return None
+        return tuple(degree)
+
+    def get_sys_status(self, device_id):
+        return LibDexHand.get_sys_status_021lite(self.instance, device_id)
+
+    def get_motor_status(self, device_id):
+        return LibDexHand.get_motor_status_021lite(self.instance, device_id)
+
+    def get_enable_status(self, device_id):
+        return LibDexHand.get_enable_status_021lite(self.instance, device_id)
+
+    def reboot(self, device_id, mode=0):
+        LibDexHand.reboot_021lite(self.instance, device_id, mode)
