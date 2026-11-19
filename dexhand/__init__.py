@@ -8,6 +8,11 @@ from .dexhand import (
     DexHand021S,
     ControlLoopArgs,
     MotorState,
+    SystemField,
+    MotorParam,
+    MotorInput,
+    motor_param_field,
+    motor_input_field,
     DexHand021Lite,
 )
 
@@ -17,6 +22,11 @@ __all__ = [
     'DexHand021S',
     'ControlLoopArgs',
     'MotorState',
+    'SystemField',
+    'MotorParam',
+    'MotorInput',
+    'motor_param_field',
+    'motor_input_field',
     'DexHand021Lite',
     '__version__',
 ]

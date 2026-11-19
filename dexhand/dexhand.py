@@ -1,6 +1,7 @@
 from ctypes import *
 from enum import IntEnum
 from pathlib import Path
+from array import array
 import platform
 
 myplatform = platform.platform()
@@ -207,6 +208,74 @@ class MotorState(Structure):
         ('error_status', c_uint16),
     ]
 
+class SystemField(IntEnum):
+    """User-defined table: system/device level field codes"""
+    DEVICE_TYPE         = 0x00
+    MASTER_APP_VERSION  = 0x01
+    SERIAL_NUMBER_HIGH  = 0x02
+    SERIAL_NUMBER_LOW   = 0x03
+    SLAVE0_APP_VERSION  = 0x04
+    SLAVE1_APP_VERSION  = 0x05
+    SLAVE2_APP_VERSION  = 0x06
+    SLAVE3_APP_VERSION  = 0x07
+    SLAVE4_APP_VERSION  = 0x08
+    SLAVE5_APP_VERSION  = 0x09
+    BAUD_RATE           = 0x0A
+    SYS_ID              = 0x0B
+    APP_LENGTH_HIGH     = 0x0C
+    APP_LENGTH_LOW      = 0x0D
+    APP_CHECKSUM_HIGH   = 0x0E
+    APP_CHECKSUM_LOW    = 0x0F
+    ANGLE_D4_DEG        = 0x10
+    ANGLE_D5_DEG        = 0x11
+    ANGLE_D4_RAW        = 0x12
+    ANGLE_D5_RAW        = 0x13
+    TEMP1               = 0x14
+    TEMP2               = 0x15
+    SYS_STATUS          = 0x16
+    MOTOR_STATUS        = 0x17
+
+class MotorParam(IntEnum):
+    """User-defined table: motor parameter offsets, build codes with motor_param_field()"""
+    POS_KP              = 0
+    POS_KI              = 1
+    POS_KD              = 2
+    POS_MAXOUT          = 3
+    POS_MINOUT          = 4
+    POS_MAXIOUT         = 5
+    SPD_KP              = 6
+    SPD_KI              = 7
+    SPD_KD              = 8
+    SPD_MAXOUT          = 9
+    SPD_MINOUT          = 10
+    SPD_MAXIOUT         = 11
+    MOTOR_TYPE          = 12 #not writable
+    SAFE_TEMP           = 13
+
+class MotorInput(IntEnum):
+    """User-defined table: motor input offsets, build codes with motor_input_field()"""
+    ID_CURRENT          = 0
+    IQ_CURRENT          = 1
+    RPM                 = 2
+    HALL                = 3
+    HALL_EST            = 4
+    ERR_BIT             = 5
+
+def motor_param_field(motor, param):
+    """Field code of a motor parameter"""
+    if not 0 <= motor <= 5:
+        raise ValueError('motor must be 0..5, got {}'.format(motor))
+    if not 0 <= param <= 13:
+        raise ValueError('param must be 0..13, got {}'.format(param))
+    return 0x0100 + 0x10 * motor + param
+
+def motor_input_field(motor, input):
+    """Field code of a motor input"""
+    if not 0 <= motor <= 5:
+        raise ValueError('motor must be 0..5, got {}'.format(motor))
+    if not 0 <= input <= 5:
+        raise ValueError('input must be 0..5, got {}'.format(input))
+    return 0x0200 + 0x08 * motor + input
 
 class DexHand021Lite:
     def __init__(self, serial_port, baud_rate=921600):
@@ -271,11 +340,10 @@ class DexHand021Lite:
 
         LibDexHand.write_user_table_021lite.argtypes = [c_void_p, c_ubyte, POINTER(c_uint16), c_int]
         LibDexHand.write_user_table_021lite.restype = c_bool
-        LibDexHand.read_user_table_021lite.argtypes = [c_void_p, c_ubyte, POINTER(c_uint16), c_int]
-        LibDexHand.read_user_table_021lite.restype = c_bool
-        LibDexHand.read_user_table_values_021lite.argtypes = [c_void_p, c_ubyte, POINTER(c_uint16), c_int]
+
+        LibDexHand.read_user_table_values_021lite.argtypes = [c_void_p, c_ubyte, POINTER(c_uint16), POINTER(c_uint16), c_int]
         LibDexHand.read_user_table_values_021lite.restype = c_bool
-        LibDexHand.write_user_table_values_021lite.argtypes = [c_void_p, c_ubyte, POINTER(c_uint16), c_int]
+        LibDexHand.write_user_table_values_021lite.argtypes = [c_void_p, c_ubyte, POINTER(c_uint16), POINTER(c_uint16), c_int]
         LibDexHand.write_user_table_values_021lite.restype = c_bool
 
         LibDexHand.get_hand_status_021lite.argtypes = [c_void_p, c_ubyte, POINTER(MotorState)]
@@ -376,25 +444,39 @@ class DexHand021Lite:
     def set_baud_rate(self, device_id, baud_index, adapter_type=AdapterType.USB2_485):
         return LibDexHand.set_baud_rate_021lite(self.instance, device_id, baud_index, adapter_type)
 
-    def write_user_table(self, device_id, reg_addrs):
-        reg_addrs = (c_uint16 * len(reg_addrs))(*reg_addrs)
-        return LibDexHand.write_user_table_021lite(self.instance, device_id, reg_addrs, len(reg_addrs))
+    def write_user_table(self, device_id, fields):
+        fields = list(fields)
+        if not fields:
+            return False
+        return LibDexHand.write_user_table_021lite(
+            self.instance, device_id,
+            (c_uint16 * len(fields)).from_buffer_copy(array('H', fields)),
+            len(fields))
 
-    def read_user_table(self, device_id, count):
-        reg_addrs = (c_uint16 * count)()
-        if not LibDexHand.read_user_table_021lite(self.instance, device_id, reg_addrs, count):
-            return None
-        return list(reg_addrs)
+    def read_user_table_values(self, device_id, fields):
+        fields = list(fields)
+        if not fields:
+            return (False, [])
+        values = (c_uint16 * len(fields))()
+        res = LibDexHand.read_user_table_values_021lite(self.instance, device_id,
+                (c_uint16 * len(fields)).from_buffer_copy(array('H', fields)),
+                values, len(fields))
+        if not res:
+            return (False, [])
+        return (True, list(values))
 
-    def read_user_table_values(self, device_id, count):
-        values = (c_uint16 * count)()
-        if not LibDexHand.read_user_table_values_021lite(self.instance, device_id, values, count):
-            return None
-        return list(values)
-
-    def write_user_table_values(self, device_id, values):
-        values = (c_uint16 * len(values))(*values)
-        return LibDexHand.write_user_table_values_021lite(self.instance, device_id, values, len(values))
+    def write_user_table_values(self, device_id, fields, values):
+        fields = list(fields)
+        values = list(values)
+        if len(fields) != len(values):
+            raise ValueError('fields and values must have the same length')
+        if not fields:
+            return False
+        return LibDexHand.write_user_table_values_021lite(
+            self.instance, device_id,
+            (c_uint16 * len(fields)).from_buffer_copy(array('H', fields)),
+            (c_uint16 * len(values)).from_buffer_copy(array('H', values)),
+            len(fields))
 
     def get_hand_status(self, device_id):
         status = (MotorState * 6)()

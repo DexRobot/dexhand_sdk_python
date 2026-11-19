@@ -4,6 +4,8 @@ from dexhand import AdapterType, DexHand021Lite, ControlMode
 
 
 def main():
+    # Modify the value of the variable default_port based on the serialport number
+    # currently assigned by the system.
     default_port = 'COM12' if sys.platform == 'win32' else '/dev/ttyUSB0'
     serial_port = sys.argv[1] if len(sys.argv) > 1 else default_port
     hand = DexHand021Lite(serial_port=serial_port, baud_rate=921600)
@@ -19,6 +21,19 @@ def main():
 
     hand.enable_realtime_response(device_id, 10, True)
 
+    def print_status(hand, device_id, tag):
+        status = hand.get_hand_status(device_id)
+        if status:
+            for motor_id, motor in enumerate(status):
+                print('{} motor={}, hall={}, rpm={}, current={}, err={}'.format(
+                    tag,
+                    motor_id,
+                    motor.hall,
+                    motor.rpm,
+                    motor.id_current,
+                    motor.error_status
+                ))
+
     print('Hand type={}'.format(hand.get_hand_type(device_id)))
     print('Firmware version={:#x}'.format(hand.get_firmware_version(device_id, 0xFF)))
 
@@ -33,26 +48,16 @@ def main():
 
     pose1 = [(1000, 10000, 100, 0, 0)] * 4 + [(0, 10000, 100, 0, 0)] * 2
 
-    pose2 = [(0, 10000, 100, 0, 0)] * 4 + [(3000, 10000, 100, 0, 0)] + [(2000, 10000, 100, 0, 0)]
+    pose2 = [(0, 10000, 100, 0, 0)] * 4 + [(2000, 10000, 100, 0, 0)] + [(3000, 10000, 100, 0, 0)]
 
     for i in range(5):
         hand.move_multiple_fingers(device_id, ControlMode.PROTECT_HALL_POSITION, pose1)
-        time.sleep(2)
+        print_status(hand, device_id, 'pose1')
+        time.sleep(1)
 
         hand.move_multiple_fingers(device_id, ControlMode.PROTECT_HALL_POSITION, pose2)
-        time.sleep(2)
-
-        status = hand.get_hand_status(device_id)
-        if status:
-
-            for motor_id, motor in enumerate(status):
-                print('Motor {} status: hall={}, rpm={}, current={}, err={}'.format(
-                    motor_id,
-                    motor.hall,
-                    motor.rpm,
-                    motor.id_current,
-                    motor.error_status
-                ))
+        print_status(hand, device_id, 'pose2')
+        time.sleep(1)
 
     time.sleep(1)
 
